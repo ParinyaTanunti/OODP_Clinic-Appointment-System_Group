@@ -105,6 +105,16 @@ ClinicAppointmentSystem/
    java -cp out main.MainApp
    ```
 
+### Build on Windows
+
+On Windows, glob patterns like `src/*/*.java` are not expanded reliably by the shell and can cause `javac` to fail with "Invalid filename". Use one of these methods instead:
+
+- **PowerShell (recommended):** Run `.\build.ps1` to compile. Add `-Run` to also run the app:
+  ```powershell
+  .\build.ps1 -Run
+  ```
+- **Command Prompt:** Run `build.bat` to compile, or `build.bat run` to compile and run.
+
 ---
 
 ### 🖥️ Main Menu
