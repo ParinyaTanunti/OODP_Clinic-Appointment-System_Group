@@ -83,7 +83,7 @@ ClinicAppointmentSystem/
 
 ---
 
-### 🚀 Installation & Running
+### 🚀 How to Installation & Running
 
 1. **Clone the repository**
    ```bash
@@ -124,13 +124,12 @@ Choose an option:
 
 ## 🧑‍🤝‍🧑 Group Members
 
-| Student ID | Name | Section |
+| Name | Student ID | Section |
 |---|---|---|
-| XXXXXXXXX | Member 1 | X |
-| XXXXXXXXX | Member 2 | X |
-| XXXXXXXXX | Member 3 | X |
-| XXXXXXXXX | Member 4 | X |
-| XXXXXXXXX | Member 5 | X |
+| Parinya Tanunti | 6831503057 | 1 |
+| Nonnaphat Thirawatthanakamchon | 6831503053 | 1 |
+| Acharayu Majan | 6831503081 | 1 |
+| Nattasira Luecha | 6831503041 | 1 |
 
 ---
 
