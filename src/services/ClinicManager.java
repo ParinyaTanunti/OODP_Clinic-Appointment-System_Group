@@ -127,20 +127,6 @@ public class ClinicManager {
         }
     }
 
-    public void viewAppointmentsByDoctor(String doctorId) {
-    boolean found = false;
-    System.out.println("\n=== Appointments for Doctor " + doctorId + " ===");
-    for (Appointment a : appointments) {
-        if (a.getDoctor().getUserId().equals(doctorId)) {
-            System.out.println(a.getDetails());
-            found = true;
-        }
-    }
-    if (!found) {
-        System.out.println("No appointments found for this doctor.");
-    }
-}
-
     // ─── APPOINTMENT ─────────────────────────────────────────────────────────
 
     /**
