@@ -35,11 +35,14 @@ public class Appointment {
     }
 
     /**
-     * Cancel this appointment and free the doctor's time slot back.
+     * WHY CANCEL ONLY UPDATES STATUS:
+     * Doctor available slots represent standard clinic hours (e.g. 09:00, 10:00)
+     * rather than a specific date. Because booking conflicts are checked using
+     * doctor + date + time slot in ClinicManager, cancelling only needs to mark
+     * this appointment as CANCELLED so the same date/time becomes bookable again.
      */
     public void cancel() {
         this.status = "CANCELLED";
-        doctor.cancelSlot(timeSlot); // Give slot back to doctor
     }
 
     // Getters
