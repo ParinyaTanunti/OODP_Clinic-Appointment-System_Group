@@ -8,6 +8,9 @@ import exception.SlotUnavailableException;
 import exception.InvalidInputException;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -90,6 +93,8 @@ public class ClinicManager {
             throws InvalidInputException, IOException {
         if (name == null || name.trim().isEmpty())
             throw new InvalidInputException("Doctor name cannot be empty.");
+        if (phone == null || phone.trim().isEmpty())
+            throw new InvalidInputException("Phone number cannot be empty.");
         if (specialty == null || specialty.trim().isEmpty())
             throw new InvalidInputException("Specialty cannot be empty.");
 
@@ -99,7 +104,10 @@ public class ClinicManager {
         // Parse comma-separated time slots e.g. "09:00,10:00,14:00"
         if (slotsInput != null && !slotsInput.trim().isEmpty()) {
             for (String slot : slotsInput.split(",")) {
-                d.addSlot(slot.trim());
+                String cleanSlot = slot.trim();
+                if (!cleanSlot.isEmpty()) {
+                    d.addSlot(cleanSlot);
+                }
             }
         }
         doctors.add(d);
@@ -137,6 +145,21 @@ public class ClinicManager {
         if (slot == null || slot.trim().isEmpty())
             throw new InvalidInputException("Time slot cannot be empty.");
 
+        String cleanDate = date.trim();
+        String cleanSlot = slot.trim();
+
+        try {
+            LocalDate.parse(cleanDate);
+        } catch (DateTimeParseException e) {
+            throw new InvalidInputException("Date must be in YYYY-MM-DD format.");
+        }
+
+        try {
+            LocalTime.parse(cleanSlot);
+        } catch (DateTimeParseException e) {
+            throw new InvalidInputException("Time slot must be in HH:MM format.");
+        }
+
         // Use generic findById — concept 2.6 (Parametric Polymorphism)
         Patient patient = FileManager.findById(patients, patientId);
         if (patient == null)
@@ -146,17 +169,33 @@ public class ClinicManager {
         if (doctor == null)
             throw new DoctorNotFoundException(doctorId); // concept 2.3
 
-        if (!doctor.getAvailableSlots().contains(slot))
-            throw new SlotUnavailableException(slot); // concept 2.3
+        if (!doctor.getAvailableSlots().contains(cleanSlot))
+            throw new SlotUnavailableException(cleanSlot); // concept 2.3
+
+        // WHY CHECK APPOINTMENTS LIST:
+        // Doctor availableSlots stores standard working hours, not date-specific bookings.
+        // We therefore prevent double-booking by checking doctor + date + time among ACTIVE appointments.
+        if (isDoctorBooked(doctorId, cleanDate, cleanSlot))
+            throw new SlotUnavailableException(cleanSlot + " on " + cleanDate);
 
         String apptId = "A" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        Appointment appt = new Appointment(apptId, patient, doctor, date.trim(), slot.trim());
+        Appointment appt = new Appointment(apptId, patient, doctor, cleanDate, cleanSlot);
 
-        doctor.schedule(slot); // Remove slot from doctor's available list
         appointments.add(appt);
-        FileManager.saveDoctors(doctors);
         FileManager.saveAppointments(appointments);
         System.out.println("Appointment booked! ID: " + apptId);
+    }
+
+    private boolean isDoctorBooked(String doctorId, String date, String slot) {
+        for (Appointment a : appointments) {
+            if (a.getStatus().equals("ACTIVE")
+                    && a.getDoctor().getUserId().equals(doctorId)
+                    && a.getDate().equals(date)
+                    && a.getTimeSlot().equals(slot)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void cancelAppointment(String apptId) throws IOException {
@@ -167,7 +206,6 @@ public class ClinicManager {
                     return;
                 }
                 a.cancel();
-                FileManager.saveDoctors(doctors);
                 FileManager.saveAppointments(appointments);
                 System.out.println("Appointment " + apptId + " cancelled.");
                 return;
@@ -197,6 +235,18 @@ public class ClinicManager {
             }
         }
         if (!found) System.out.println("No appointments found for this patient.");
+    }
+
+    public void viewAppointmentsByDoctor(String doctorId) {
+        boolean found = false;
+        System.out.println("\n=== Appointments for Doctor " + doctorId + " ===");
+        for (Appointment a : appointments) {
+            if (a.getDoctor().getUserId().equals(doctorId)) {
+                System.out.println(a.getDetails());
+                found = true;
+            }
+        }
+        if (!found) System.out.println("No appointments found for this doctor.");
     }
 
     // Getters
