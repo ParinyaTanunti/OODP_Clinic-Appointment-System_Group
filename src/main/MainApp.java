@@ -19,14 +19,12 @@ import java.util.Scanner;
  */
 public class MainApp {
 
-    // concept 2.4: Scanner for all keyboard input
     private static final Scanner scanner = new Scanner(System.in);
     private static final ClinicManager clinic = new ClinicManager();
 
     public static void main(String[] args) {
         FileManager.initialize();
 
-        // concept 2.1 + 2.3: Load data from file, handle IOException
         try {
             clinic.loadAll();
         } catch (IOException e) {
@@ -35,6 +33,7 @@ public class MainApp {
 
         boolean running = true;
         while (running) {
+            clearScreen();
             printMainMenu();
             int choice = readInt();
             switch (choice) {
@@ -49,11 +48,13 @@ public class MainApp {
                     } catch (IOException e) {
                         System.out.println("Error saving: " + e.getMessage());
                     }
+                    clearScreen();
                     System.out.println("Goodbye!");
                     running = false;
                     break;
                 default:
                     System.out.println("Invalid choice. Please try again.");
+                    pause();
             }
         }
         scanner.close();
@@ -62,8 +63,8 @@ public class MainApp {
     // ─── MENUS ───────────────────────────────────────────────────────────────
 
     private static void printMainMenu() {
-        System.out.println("\n========================================");
-        System.out.println("    Clinic Appointment System");
+        System.out.println("========================================");
+        System.out.println("      Clinic Appointment System");
         System.out.println("========================================");
         System.out.println("1. Manage Patients");
         System.out.println("2. Manage Doctors");
@@ -75,36 +76,45 @@ public class MainApp {
     }
 
     private static void menuManagePatients() {
-        System.out.println("\n--- Manage Patients ---");
+        clearScreen();
+        System.out.println("=== Manage Patients ===");
         System.out.println("1. Add Patient");
         System.out.println("2. View All Patients");
         System.out.print("Choose: ");
         int choice = readInt();
+
         if (choice == 1) {
+            clearScreen();
+            System.out.println("=== Add Patient ===");
             try {
                 System.out.print("Name         : "); String name = scanner.nextLine().trim();
                 System.out.print("Phone        : "); String phone = scanner.nextLine().trim();
                 System.out.print("Date of Birth: "); String dob = scanner.nextLine().trim();
                 clinic.addPatient(name, phone, dob);
-
-            // concept 2.3: Catch custom exception and print specific message
             } catch (InvalidInputException e) {
                 System.out.println("Error: " + e.getMessage());
             } catch (IOException e) {
                 System.out.println("File error: " + e.getMessage());
             }
+
         } else if (choice == 2) {
+            clearScreen();
             clinic.listPatients();
         }
+        pause();
     }
 
     private static void menuManageDoctors() {
-        System.out.println("\n--- Manage Doctors ---");
+        clearScreen();
+        System.out.println("=== Manage Doctors ===");
         System.out.println("1. Add Doctor");
         System.out.println("2. View All Doctors");
         System.out.print("Choose: ");
         int choice = readInt();
+
         if (choice == 1) {
+            clearScreen();
+            System.out.println("=== Add Doctor ===");
             try {
                 System.out.print("Name         : "); String name = scanner.nextLine().trim();
                 System.out.print("Phone        : "); String phone = scanner.nextLine().trim();
@@ -112,23 +122,30 @@ public class MainApp {
                 System.out.print("Time slots (comma-separated, e.g. 09:00,10:00,14:00): ");
                 String slots = scanner.nextLine().trim();
                 clinic.addDoctor(name, phone, spec, slots);
-
             } catch (InvalidInputException e) {
                 System.out.println("Error: " + e.getMessage());
             } catch (IOException e) {
                 System.out.println("File error: " + e.getMessage());
             }
+
         } else if (choice == 2) {
+            clearScreen();
             clinic.listDoctors();
         }
+        pause();
     }
 
     private static void menuBookAppointment() {
-        System.out.println("\n--- Book Appointment ---");
+        clearScreen();
+        System.out.println("=== Book Appointment ===");
+
+        // Show patients
         clinic.listPatients();
         System.out.print("Enter Patient ID: ");
         String patientId = scanner.nextLine().trim();
 
+        // Show doctors with their slots clearly
+        System.out.println();
         clinic.listDoctors();
         System.out.print("Enter Doctor ID : ");
         String doctorId = scanner.nextLine().trim();
@@ -140,8 +157,6 @@ public class MainApp {
 
         try {
             clinic.bookAppointment(patientId, doctorId, date, slot);
-
-        // concept 2.3: Each custom exception is caught separately for targeted feedback
         } catch (DoctorNotFoundException e) {
             System.out.println("Error: " + e.getMessage());
         } catch (SlotUnavailableException e) {
@@ -151,24 +166,32 @@ public class MainApp {
         } catch (IOException e) {
             System.out.println("File error: " + e.getMessage());
         }
+        pause();
     }
 
     private static void menuViewAppointments() {
-        System.out.println("\n--- View Appointments ---");
+        clearScreen();
+        System.out.println("=== View Appointments ===");
         System.out.println("1. View All");
         System.out.println("2. View by Patient");
         System.out.print("Choose: ");
         int choice = readInt();
+
+        clearScreen();
         if (choice == 1) {
             clinic.viewAllAppointments();
         } else if (choice == 2) {
+            clinic.listPatients();
             System.out.print("Enter Patient ID: ");
             String pid = scanner.nextLine().trim();
             clinic.viewAppointmentsByPatient(pid);
         }
+        pause();
     }
 
     private static void menuCancelAppointment() {
+        clearScreen();
+        System.out.println("=== Cancel Appointment ===");
         clinic.viewAllAppointments();
         System.out.print("Enter Appointment ID to cancel: ");
         String apptId = scanner.nextLine().trim();
@@ -177,20 +200,52 @@ public class MainApp {
         } catch (IOException e) {
             System.out.println("File error: " + e.getMessage());
         }
+        pause();
     }
 
-    // ─── HELPER ──────────────────────────────────────────────────────────────
+    // ─── HELPERS ─────────────────────────────────────────────────────────────
 
     /**
-     * WHY SEPARATE readInt():
-     * Wraps parseInt in a try-catch so the program never crashes from
-     * a non-numeric menu input. This is part of concept 2.4 (Input handling).
+     * WHY clearScreen():
+     * Clears the terminal between menus so the display stays clean.
+     * Works on both Windows (\033[H\033[2J ANSI) and falls back to
+     * cls/clear if ANSI is not supported.
+     */
+    private static void clearScreen() {
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("win")) {
+                new ProcessBuilder("cmd", "/c", "cls")
+                    .inheritIO().start().waitFor();
+            } else {
+                new ProcessBuilder("clear")
+                    .inheritIO().start().waitFor();
+            }
+        } catch (Exception e) {
+            // Fallback: print blank lines
+            for (int i = 0; i < 50; i++) System.out.println();
+        }
+    }
+
+    /**
+     * WHY pause():
+     * Waits for user to press Enter before clearing the screen,
+     * so they have time to read the output.
+     */
+    private static void pause() {
+        System.out.print("\nPress Enter to continue...");
+        scanner.nextLine();
+    }
+
+    /**
+     * WHY readInt():
+     * Wraps parseInt in try-catch so non-numeric input never crashes the program.
+     * This is part of concept 2.4 (Input handling).
      */
     private static int readInt() {
         while (true) {
             try {
-                int val = Integer.parseInt(scanner.nextLine().trim());
-                return val;
+                return Integer.parseInt(scanner.nextLine().trim());
             } catch (NumberFormatException e) {
                 System.out.print("Please enter a number: ");
             }
