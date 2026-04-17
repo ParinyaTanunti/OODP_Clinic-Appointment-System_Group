@@ -89,7 +89,7 @@ public class MainApp {
             try {
                 System.out.print("Name         : "); String name = scanner.nextLine().trim();
                 System.out.print("Phone        : "); String phone = scanner.nextLine().trim();
-                System.out.print("Date of Birth: "); String dob = scanner.nextLine().trim();
+                System.out.print("Date of Birth (YYYY-MM-DD): "); String dob = scanner.nextLine().trim();
                 clinic.addPatient(name, phone, dob);
             } catch (InvalidInputException e) {
                 System.out.println("Error: " + e.getMessage());
