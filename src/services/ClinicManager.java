@@ -215,20 +215,21 @@ public class ClinicManager {
         return false;
     }
 
-    public void cancelAppointment(String apptId) throws IOException {
+    public boolean cancelAppointment(String apptId) throws IOException {
         for (Appointment a : appointments) {
             if (a.getAppointmentId().equals(apptId)) {
                 if (a.getStatus().equals("CANCELLED")) {
                     System.out.println("This appointment is already cancelled.");
-                    return;
+                    return true;
                 }
                 a.cancel();
                 FileManager.saveAppointments(appointments);
                 System.out.println("Appointment " + apptId + " cancelled.");
-                return;
+                return true;
             }
         }
         System.out.println("Appointment ID not found: " + apptId);
+        return false;
     }
 
     public void viewAllAppointments() {

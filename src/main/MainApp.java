@@ -76,139 +76,236 @@ public class MainApp {
     }
 
     private static void menuManagePatients() {
-        clearScreen();
-        System.out.println("=== Manage Patients ===");
-        System.out.println("1. Add Patient");
-        System.out.println("2. View All Patients");
-        System.out.print("Choose: ");
-        int choice = readInt();
-
-        if (choice == 1) {
+        while (true) {
             clearScreen();
-            System.out.println("=== Add Patient ===");
-            try {
-                System.out.print("Name         : "); String name = scanner.nextLine().trim();
-                System.out.print("Phone        : "); String phone = scanner.nextLine().trim();
-                System.out.print("Date of Birth (YYYY-MM-DD): "); String dob = scanner.nextLine().trim();
-                clinic.addPatient(name, phone, dob);
-            } catch (InvalidInputException e) {
-                System.out.println("Error: " + e.getMessage());
-            } catch (IOException e) {
-                System.out.println("File error: " + e.getMessage());
+            System.out.println("=== Manage Patients ===");
+            System.out.println("1. Add Patient");
+            System.out.println("2. View All Patients");
+            System.out.println("0. Back");
+            System.out.print("Choose: ");
+            int choice = readInt();
+
+            if (choice == 1) {
+                while (true) {
+                    clearScreen();
+                    System.out.println("=== Add Patient ===");
+                    try {
+                        System.out.print("Name         : "); String name = scanner.nextLine().trim();
+                        System.out.print("Phone        : "); String phone = scanner.nextLine().trim();
+                        System.out.print("Date of Birth (YYYY-MM-DD): "); String dob = scanner.nextLine().trim();
+                        clinic.addPatient(name, phone, dob);
+                        pause();
+                        break;
+                    } catch (InvalidInputException e) {
+                        System.out.println("Error: " + e.getMessage());
+                        System.out.print("\nPlease try again. Press Enter to re-enter patient details...");
+                        scanner.nextLine();
+                    } catch (IOException e) {
+                        System.out.println("File error: " + e.getMessage());
+                        pause();
+                        return;
+                    }
+                }
+            } else if (choice == 2) {
+                clearScreen();
+                clinic.listPatients();
+                pause();
+            } else if (choice == 0) {
+                return;
+            } else {
+                System.out.println("Invalid choice. Please try again.");
+                pause();
             }
-
-        } else if (choice == 2) {
-            clearScreen();
-            clinic.listPatients();
         }
-        pause();
     }
 
     private static void menuManageDoctors() {
-        clearScreen();
-        System.out.println("=== Manage Doctors ===");
-        System.out.println("1. Add Doctor");
-        System.out.println("2. View All Doctors");
-        System.out.print("Choose: ");
-        int choice = readInt();
-
-        if (choice == 1) {
+        while (true) {
             clearScreen();
-            System.out.println("=== Add Doctor ===");
+            System.out.println("=== Manage Doctors ===");
+            System.out.println("1. Add Doctor");
+            System.out.println("2. View All Doctors");
+            System.out.println("0. Back");
+            System.out.print("Choose: ");
+            int choice = readInt();
+
+            if (choice == 1) {
+                while (true) {
+                    clearScreen();
+                    System.out.println("=== Add Doctor ===");
+                    try {
+                        System.out.print("Name         : "); String name = scanner.nextLine().trim();
+                        System.out.print("Phone        : "); String phone = scanner.nextLine().trim();
+                        System.out.print("Specialty    : "); String spec = scanner.nextLine().trim();
+                        System.out.print("Time slots (comma-separated, e.g. 09:00,10:00,14:00): ");
+                        String slots = scanner.nextLine().trim();
+                        clinic.addDoctor(name, phone, spec, slots);
+                        pause();
+                        break;
+                    } catch (InvalidInputException e) {
+                        System.out.println("Error: " + e.getMessage());
+                        System.out.print("\nPlease try again. Press Enter to re-enter doctor details...");
+                        scanner.nextLine();
+                    } catch (IOException e) {
+                        System.out.println("File error: " + e.getMessage());
+                        pause();
+                        return;
+                    }
+                }
+            } else if (choice == 2) {
+                clearScreen();
+                clinic.listDoctors();
+                pause();
+            } else if (choice == 0) {
+                return;
+            } else {
+                System.out.println("Invalid choice. Please try again.");
+                pause();
+            }
+        }
+    }
+
+    private static void menuBookAppointment() {
+        if (clinic.getPatients().isEmpty()) {
+            clearScreen();
+            System.out.println("=== Book Appointment ===");
+            System.out.println("No patients registered. Please add a patient first.");
+            pause();
+            return;
+        }
+
+        if (clinic.getDoctors().isEmpty()) {
+            clearScreen();
+            System.out.println("=== Book Appointment ===");
+            System.out.println("No doctors registered. Please add a doctor first.");
+            pause();
+            return;
+        }
+
+        while (true) {
+            clearScreen();
+            System.out.println("=== Book Appointment ===");
+
+            // Show patients
+            clinic.listPatients();
+            System.out.print("Enter Patient ID: ");
+            String patientId = scanner.nextLine().trim();
+
+            // Show doctors with their slots clearly
+            System.out.println();
+            clinic.listDoctors();
+            System.out.print("Enter Doctor ID : ");
+            String doctorId = scanner.nextLine().trim();
+
+            System.out.print("Date (YYYY-MM-DD): ");
+            String date = scanner.nextLine().trim();
+            System.out.print("Time Slot (e.g. 09:00): ");
+            String slot = scanner.nextLine().trim();
+
             try {
-                System.out.print("Name         : "); String name = scanner.nextLine().trim();
-                System.out.print("Phone        : "); String phone = scanner.nextLine().trim();
-                System.out.print("Specialty    : "); String spec = scanner.nextLine().trim();
-                System.out.print("Time slots (comma-separated, e.g. 09:00,10:00,14:00): ");
-                String slots = scanner.nextLine().trim();
-                clinic.addDoctor(name, phone, spec, slots);
+                clinic.bookAppointment(patientId, doctorId, date, slot);
+                pause();
+                return;
+            } catch (DoctorNotFoundException e) {
+                System.out.println("Error: " + e.getMessage());
+            } catch (SlotUnavailableException e) {
+                System.out.println("Error: " + e.getMessage());
             } catch (InvalidInputException e) {
                 System.out.println("Error: " + e.getMessage());
             } catch (IOException e) {
                 System.out.println("File error: " + e.getMessage());
+                pause();
+                return;
             }
 
-        } else if (choice == 2) {
-            clearScreen();
-            clinic.listDoctors();
+            System.out.print("\nPlease try again. Press Enter to re-enter appointment details...");
+            scanner.nextLine();
         }
-        pause();
-    }
-
-    private static void menuBookAppointment() {
-        clearScreen();
-        System.out.println("=== Book Appointment ===");
-
-        // Show patients
-        clinic.listPatients();
-        System.out.print("Enter Patient ID: ");
-        String patientId = scanner.nextLine().trim();
-
-        // Show doctors with their slots clearly
-        System.out.println();
-        clinic.listDoctors();
-        System.out.print("Enter Doctor ID : ");
-        String doctorId = scanner.nextLine().trim();
-
-        System.out.print("Date (YYYY-MM-DD): ");
-        String date = scanner.nextLine().trim();
-        System.out.print("Time Slot (e.g. 09:00): ");
-        String slot = scanner.nextLine().trim();
-
-        try {
-            clinic.bookAppointment(patientId, doctorId, date, slot);
-        } catch (DoctorNotFoundException e) {
-            System.out.println("Error: " + e.getMessage());
-        } catch (SlotUnavailableException e) {
-            System.out.println("Error: " + e.getMessage());
-        } catch (InvalidInputException e) {
-            System.out.println("Error: " + e.getMessage());
-        } catch (IOException e) {
-            System.out.println("File error: " + e.getMessage());
-        }
-        pause();
     }
 
     private static void menuViewAppointments() {
-        clearScreen();
-        System.out.println("=== View Appointments ===");
-        System.out.println("1. View All");
-        System.out.println("2. View by Patient");
-        System.out.println("3. View by Doctor");
-        System.out.print("Choose: ");
-        int choice = readInt();
+        while (true) {
+            clearScreen();
+            System.out.println("=== View Appointments ===");
+            System.out.println("1. View All");
+            System.out.println("2. View by Patient");
+            System.out.println("3. View by Doctor");
+            System.out.println("0. Back");
+            System.out.print("Choose: ");
+            int choice = readInt();
 
-        clearScreen();
-        if (choice == 1) {
-            clinic.viewAllAppointments();
-        } else if (choice == 2) {
-            clinic.listPatients();
-            System.out.print("Enter Patient ID: ");
-            String pid = scanner.nextLine().trim();
-            clinic.viewAppointmentsByPatient(pid);
-        } else if (choice == 3) {
-            clinic.listDoctors();
-            System.out.print("Enter Doctor ID: ");
-            String did = scanner.nextLine().trim();
-            clinic.viewAppointmentsByDoctor(did);
-        } else {
-            System.out.println("Invalid choice.");
+            clearScreen();
+            if (choice == 1) {
+                clinic.viewAllAppointments();
+                pause();
+            } else if (choice == 2) {
+                if (clinic.getPatients().isEmpty()) {
+                    System.out.println("No patients registered.");
+                    pause();
+                    continue;
+                }
+
+                clinic.listPatients();
+                System.out.print("Enter Patient ID: ");
+                String pid = scanner.nextLine().trim();
+                clinic.viewAppointmentsByPatient(pid);
+                pause();
+            } else if (choice == 3) {
+                if (clinic.getDoctors().isEmpty()) {
+                    System.out.println("No doctors registered.");
+                    pause();
+                    continue;
+                }
+
+                clinic.listDoctors();
+                System.out.print("Enter Doctor ID: ");
+                String did = scanner.nextLine().trim();
+                clinic.viewAppointmentsByDoctor(did);
+                pause();
+            } else if (choice == 0) {
+                return;
+            } else {
+                System.out.println("Invalid choice.");
+                pause();
+            }
         }
-        pause();
     }
 
     private static void menuCancelAppointment() {
-        clearScreen();
-        System.out.println("=== Cancel Appointment ===");
-        clinic.viewAllAppointments();
-        System.out.print("Enter Appointment ID to cancel: ");
-        String apptId = scanner.nextLine().trim();
-        try {
-            clinic.cancelAppointment(apptId);
-        } catch (IOException e) {
-            System.out.println("File error: " + e.getMessage());
+        if (clinic.getAppointments().isEmpty()) {
+            clearScreen();
+            System.out.println("=== Cancel Appointment ===");
+            System.out.println("No appointments on record.");
+            pause();
+            return;
         }
-        pause();
+
+        while (true) {
+            clearScreen();
+            System.out.println("=== Cancel Appointment ===");
+            clinic.viewAllAppointments();
+            System.out.print("Enter Appointment ID to cancel (or 0 to go back): ");
+            String apptId = scanner.nextLine().trim();
+
+            if (apptId.equals("0")) {
+                return;
+            }
+
+            try {
+                boolean cancelled = clinic.cancelAppointment(apptId);
+                if (cancelled) {
+                    pause();
+                    return;
+                }
+
+                System.out.print("\nPlease try again. Press Enter to re-enter appointment ID...");
+                scanner.nextLine();
+            } catch (IOException e) {
+                System.out.println("File error: " + e.getMessage());
+                pause();
+                return;
+            }
+        }
     }
 
     // ─── HELPERS ─────────────────────────────────────────────────────────────
