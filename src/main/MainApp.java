@@ -1,5 +1,7 @@
 package main;
 
+import model.Doctor;
+import model.Patient;
 import services.ClinicManager;
 import services.FileManager;
 import exception.DoctorNotFoundException;
@@ -7,6 +9,7 @@ import exception.SlotUnavailableException;
 import exception.InvalidInputException;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -215,18 +218,16 @@ public class MainApp {
             System.out.println("=== Book Appointment ===");
             System.out.println("Enter 0 at any time to cancel.");
 
-            // Show current patients so the user can choose a valid ID
-            clinic.listPatients();
-            String patientId = readInputOrCancel("Enter Patient ID: ");
-            if (patientId == null) {
+            // Let the user choose a patient by number while keeping the real ID internally
+            Patient selectedPatient = selectPatientByNumber();
+            if (selectedPatient == null) {
                 return;
             }
 
-            // Show doctors and their slots before booking
+            // Let the user choose a doctor by number while keeping the real ID internally
             System.out.println();
-            clinic.listDoctors();
-            String doctorId = readInputOrCancel("Enter Doctor ID : ");
-            if (doctorId == null) {
+            Doctor selectedDoctor = selectDoctorByNumber();
+            if (selectedDoctor == null) {
                 return;
             }
 
@@ -241,7 +242,12 @@ public class MainApp {
 
             try {
                 // Only save the appointment if all booking rules pass
-                clinic.bookAppointment(patientId, doctorId, date, slot);
+                clinic.bookAppointment(
+                    selectedPatient.getUserId(),
+                    selectedDoctor.getUserId(),
+                    date,
+                    slot
+                );
                 pause();
                 return;
             } catch (DoctorNotFoundException e) {
@@ -396,6 +402,74 @@ public class MainApp {
             return null;
         }
         return input;
+    }
+
+    private static Patient selectPatientByNumber() {
+        while (true) {
+            List<Patient> patients = clinic.getPatients();
+
+            System.out.println("Patients:");
+            for (int i = 0; i < patients.size(); i++) {
+                Patient patient = patients.get(i);
+                System.out.printf(
+                    "%d. %s (%s) - Symptom: %s%n",
+                    i + 1,
+                    patient.getName(),
+                    patient.getUserId(),
+                    patient.getLatestSymptom()
+                );
+            }
+
+            Integer selection = readSelectionOrCancel("Choose Patient Number: ", patients.size());
+            if (selection == null) {
+                return null;
+            }
+            return patients.get(selection - 1);
+        }
+    }
+
+    private static Doctor selectDoctorByNumber() {
+        while (true) {
+            List<Doctor> doctors = clinic.getDoctors();
+
+            System.out.println("Doctors:");
+            for (int i = 0; i < doctors.size(); i++) {
+                Doctor doctor = doctors.get(i);
+                System.out.printf(
+                    "%d. %s (%s) - Specialty: %s - Slots: %s%n",
+                    i + 1,
+                    doctor.getName(),
+                    doctor.getUserId(),
+                    doctor.getSpecialty(),
+                    doctor.getAvailableSlots()
+                );
+            }
+
+            Integer selection = readSelectionOrCancel("Choose Doctor Number : ", doctors.size());
+            if (selection == null) {
+                return null;
+            }
+            return doctors.get(selection - 1);
+        }
+    }
+
+    private static Integer readSelectionOrCancel(String prompt, int maxOption) {
+        while (true) {
+            String input = readInputOrCancel(prompt);
+            if (input == null) {
+                return null;
+            }
+
+            try {
+                int selection = Integer.parseInt(input);
+                if (selection >= 1 && selection <= maxOption) {
+                    return selection;
+                }
+                System.out.printf("Please choose a number between 1 and %d.%n", maxOption);
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
     }
 
     /**

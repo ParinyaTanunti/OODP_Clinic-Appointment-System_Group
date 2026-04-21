@@ -59,6 +59,13 @@ public class Patient extends Person {
         return dateOfBirth;
     }
 
+    public String getLatestSymptom() {
+        if (medicalHistory.isEmpty()) {
+            return "-";
+        }
+        return medicalHistory.get(medicalHistory.size() - 1);
+    }
+
     // Setter
     public void setMedicalHistory(List<String> history) {
         this.medicalHistory = history;

@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Run Clinic Appointment System",
+            "request": "launch",
+            "mainClass": "main.MainApp",
+            "classPaths": [
+                "${workspaceFolder}/out"
+            ],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build Clinic Appointment System"
+        }
+    ]
+}
