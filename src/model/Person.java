@@ -11,7 +11,6 @@ package model;
  * implementation. This is concept 2.2 (Inheritance).
  */
 public abstract class Person {
-
     // Protected so subclasses can access directly
     protected String userId;
     protected String name;

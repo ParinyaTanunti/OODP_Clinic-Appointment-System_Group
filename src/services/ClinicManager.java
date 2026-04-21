@@ -71,8 +71,15 @@ public class ClinicManager {
         if (dob == null || dob.trim().isEmpty())
             throw new InvalidInputException("Date of birth cannot be empty.");
 
+        String cleanDob = dob.trim();
+        try {
+            LocalDate.parse(cleanDob);
+        } catch (DateTimeParseException e) {
+            throw new InvalidInputException("Date of birth must be in YYYY-MM-DD format.");
+        }
+
         String id = "P" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        Patient p = new Patient(id, name.trim(), phone.trim(), dob.trim());
+        Patient p = new Patient(id, name.trim(), phone.trim(), cleanDob);
         patients.add(p);
         FileManager.savePatients(patients);
         System.out.println("Patient added! ID: " + id);
@@ -97,18 +104,29 @@ public class ClinicManager {
             throw new InvalidInputException("Phone number cannot be empty.");
         if (specialty == null || specialty.trim().isEmpty())
             throw new InvalidInputException("Specialty cannot be empty.");
+        if (slotsInput == null || slotsInput.trim().isEmpty())
+            throw new InvalidInputException("At least one time slot is required.");
 
         String id = "D" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         Doctor d = new Doctor(id, name.trim(), phone.trim(), specialty.trim());
 
         // Parse comma-separated time slots e.g. "09:00,10:00,14:00"
-        if (slotsInput != null && !slotsInput.trim().isEmpty()) {
-            for (String slot : slotsInput.split(",")) {
-                String cleanSlot = slot.trim();
-                if (!cleanSlot.isEmpty()) {
-                    d.addSlot(cleanSlot);
-                }
+        for (String slot : slotsInput.split(",")) {
+            String cleanSlot = slot.trim();
+            if (cleanSlot.isEmpty()) {
+                continue;
             }
+
+            try {
+                LocalTime.parse(cleanSlot);
+            } catch (DateTimeParseException e) {
+                throw new InvalidInputException("Time slots must use HH:MM format.");
+            }
+            d.addSlot(cleanSlot);
+        }
+
+        if (d.getAvailableSlots().isEmpty()) {
+            throw new InvalidInputException("At least one valid time slot is required.");
         }
         doctors.add(d);
         FileManager.saveDoctors(doctors);
@@ -160,7 +178,6 @@ public class ClinicManager {
             throw new InvalidInputException("Time slot must be in HH:MM format.");
         }
 
-        // Use generic findById — concept 2.6 (Parametric Polymorphism)
         Patient patient = FileManager.findById(patients, patientId);
         if (patient == null)
             throw new InvalidInputException("Patient ID not found: " + patientId);
@@ -226,6 +243,12 @@ public class ClinicManager {
     }
 
     public void viewAppointmentsByPatient(String patientId) {
+        Patient patient = FileManager.findById(patients, patientId);
+        if (patient == null) {
+            System.out.println("Patient ID not found: " + patientId);
+            return;
+        }
+
         boolean found = false;
         System.out.println("\n=== Appointments for Patient " + patientId + " ===");
         for (Appointment a : appointments) {
@@ -238,6 +261,12 @@ public class ClinicManager {
     }
 
     public void viewAppointmentsByDoctor(String doctorId) {
+        Doctor doctor = FileManager.findById(doctors, doctorId);
+        if (doctor == null) {
+            System.out.println("Doctor ID not found: " + doctorId);
+            return;
+        }
+
         boolean found = false;
         System.out.println("\n=== Appointments for Doctor " + doctorId + " ===");
         for (Appointment a : appointments) {

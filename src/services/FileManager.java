@@ -47,7 +47,7 @@ public class FileManager {
     public static void savePatients(List<Patient> patients) throws IOException {
         try (PrintWriter pw = new PrintWriter(new FileWriter(PATIENTS_FILE))) {
             for (Patient p : patients) {
-                pw.println(p.toFileString());
+                pw.println(serializePatient(p));
             }
         }
     }
@@ -55,7 +55,7 @@ public class FileManager {
     public static void saveDoctors(List<Doctor> doctors) throws IOException {
         try (PrintWriter pw = new PrintWriter(new FileWriter(DOCTORS_FILE))) {
             for (Doctor d : doctors) {
-                pw.println(d.toFileString());
+                pw.println(serializeDoctor(d));
             }
         }
     }
@@ -63,7 +63,7 @@ public class FileManager {
     public static void saveAppointments(List<Appointment> appointments) throws IOException {
         try (PrintWriter pw = new PrintWriter(new FileWriter(APPOINTMENTS_FILE))) {
             for (Appointment a : appointments) {
-                pw.println(a.toFileString());
+                pw.println(serializeAppointment(a));
             }
         }
     }
@@ -85,13 +85,18 @@ public class FileManager {
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
-                String[] parts = line.split(",", 5);
+                String[] parts = splitEscaped(line, ',', 5);
                 if (parts.length < 4) continue;
 
-                Patient p = new Patient(parts[0], parts[1], parts[2], parts[3]);
+                Patient p = new Patient(
+                    unescape(parts[0]),
+                    unescape(parts[1]),
+                    unescape(parts[2]),
+                    unescape(parts[3])
+                );
                 // Restore medical history if present
                 if (parts.length == 5 && !parts[4].isEmpty()) {
-                    for (String note : parts[4].split("\\|")) {
+                    for (String note : splitEscaped(unescape(parts[4]), '|', 0)) {
                         p.addHistory(note);
                     }
                 }
@@ -110,13 +115,18 @@ public class FileManager {
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
-                String[] parts = line.split(",", 5);
+                String[] parts = splitEscaped(line, ',', 5);
                 if (parts.length < 4) continue;
 
-                Doctor d = new Doctor(parts[0], parts[1], parts[2], parts[3]);
+                Doctor d = new Doctor(
+                    unescape(parts[0]),
+                    unescape(parts[1]),
+                    unescape(parts[2]),
+                    unescape(parts[3])
+                );
                 // Restore available slots if present
                 if (parts.length == 5 && !parts[4].isEmpty()) {
-                    for (String slot : parts[4].split("\\|")) {
+                    for (String slot : splitEscaped(unescape(parts[4]), '|', 0)) {
                         d.addSlot(slot);
                     }
                 }
@@ -136,22 +146,132 @@ public class FileManager {
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
-                String[] parts = line.split(",", 6);
+                String[] parts = splitEscaped(line, ',', 6);
                 if (parts.length < 6) continue;
 
                 // Find matching Patient and Doctor by ID
-                Patient patient = findById(patients, parts[1]);
-                Doctor  doctor  = findById(doctors,  parts[2]);
+                Patient patient = findById(patients, unescape(parts[1]));
+                Doctor  doctor  = findById(doctors,  unescape(parts[2]));
                 if (patient == null || doctor == null) continue;
 
                 Appointment a = new Appointment(
-                    parts[0], patient, doctor, parts[3], parts[4]
+                    unescape(parts[0]),
+                    patient,
+                    doctor,
+                    unescape(parts[3]),
+                    unescape(parts[4])
                 );
-                a.setStatus(parts[5]);
+                a.setStatus(unescape(parts[5]));
                 list.add(a);
             }
         }
         return list;
+    }
+
+    private static String serializePatient(Patient patient) {
+        return String.join(",",
+            escape(patient.getUserId()),
+            escape(patient.getName()),
+            escape(patient.getPhone()),
+            escape(patient.getDateOfBirth()),
+            escape(String.join("|", escapeList(patient.getMedicalHistory())))
+        );
+    }
+
+    private static String serializeDoctor(Doctor doctor) {
+        return String.join(",",
+            escape(doctor.getUserId()),
+            escape(doctor.getName()),
+            escape(doctor.getPhone()),
+            escape(doctor.getSpecialty()),
+            escape(String.join("|", escapeList(doctor.getAvailableSlots())))
+        );
+    }
+
+    private static String serializeAppointment(Appointment appointment) {
+        return String.join(",",
+            escape(appointment.getAppointmentId()),
+            escape(appointment.getPatient().getUserId()),
+            escape(appointment.getDoctor().getUserId()),
+            escape(appointment.getDate()),
+            escape(appointment.getTimeSlot()),
+            escape(appointment.getStatus())
+        );
+    }
+
+    private static List<String> escapeList(List<String> values) {
+        List<String> escaped = new ArrayList<>();
+        for (String value : values) {
+            escaped.add(escape(value));
+        }
+        return escaped;
+    }
+
+    private static String escape(String value) {
+        if (value == null) return "";
+
+        StringBuilder escaped = new StringBuilder();
+        for (char ch : value.toCharArray()) {
+            if (ch == '\\' || ch == ',' || ch == '|') {
+                escaped.append('\\');
+            }
+            escaped.append(ch);
+        }
+        return escaped.toString();
+    }
+
+    private static String unescape(String value) {
+        StringBuilder plain = new StringBuilder();
+        boolean escaping = false;
+
+        for (char ch : value.toCharArray()) {
+            if (escaping) {
+                plain.append(ch);
+                escaping = false;
+            } else if (ch == '\\') {
+                escaping = true;
+            } else {
+                plain.append(ch);
+            }
+        }
+
+        if (escaping) {
+            plain.append('\\');
+        }
+        return plain.toString();
+    }
+
+    private static String[] splitEscaped(String value, char delimiter, int limit) {
+        List<String> parts = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean escaping = false;
+
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+
+            if (escaping) {
+                current.append(ch);
+                escaping = false;
+                continue;
+            }
+
+            if (ch == '\\') {
+                current.append(ch);
+                escaping = true;
+                continue;
+            }
+
+            if (ch == delimiter && (limit <= 0 || parts.size() < limit - 1)) {
+                parts.add(current.toString());
+                current.setLength(0);
+                continue;
+            }
+
+            current.append(ch);
+        }
+
+        parts.add(current.toString());
+        return parts.toArray(new String[0]);
     }
 
     /**

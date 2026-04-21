@@ -13,7 +13,6 @@ import java.util.List;
  * This is concept 2.2 (Interface).
  */
 public interface ISchedulable {
-
     // Returns a list of available time slots for this schedulable entity
     List<String> getAvailableSlots();
 

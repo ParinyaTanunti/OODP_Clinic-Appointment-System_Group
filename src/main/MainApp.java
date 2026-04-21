@@ -174,6 +174,7 @@ public class MainApp {
         System.out.println("=== View Appointments ===");
         System.out.println("1. View All");
         System.out.println("2. View by Patient");
+        System.out.println("3. View by Doctor");
         System.out.print("Choose: ");
         int choice = readInt();
 
@@ -185,6 +186,13 @@ public class MainApp {
             System.out.print("Enter Patient ID: ");
             String pid = scanner.nextLine().trim();
             clinic.viewAppointmentsByPatient(pid);
+        } else if (choice == 3) {
+            clinic.listDoctors();
+            System.out.print("Enter Doctor ID: ");
+            String did = scanner.nextLine().trim();
+            clinic.viewAppointmentsByDoctor(did);
+        } else {
+            System.out.println("Invalid choice.");
         }
         pause();
     }
