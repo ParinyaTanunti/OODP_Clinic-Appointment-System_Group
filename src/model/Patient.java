@@ -36,6 +36,9 @@ public class Patient extends Person {
         System.out.println("Name         : " + name);
         System.out.println("Phone        : " + phone);
         System.out.println("Date of Birth: " + dateOfBirth);
+        if (!medicalHistory.isEmpty()) {
+            System.out.println("Latest Symptom: " + medicalHistory.get(medicalHistory.size() - 1));
+        }
         System.out.println("History Count: " + medicalHistory.size());
         System.out.println("-----------------------------");
     }

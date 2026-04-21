@@ -62,14 +62,15 @@ public class ClinicManager {
      * We throw InvalidInputException instead of silently accepting bad data.
      * This forces the caller (MainApp) to handle the error explicitly.
      */
-    public void addPatient(String name, String phone, String dob)
+    public void addPatient(String name, String phone, String dob, String symptoms)
             throws InvalidInputException, IOException {
-        if (name == null || name.trim().isEmpty())
-            throw new InvalidInputException("Patient name cannot be empty.");
+        validatePersonName(name, "Patient");
         if (phone == null || phone.trim().isEmpty())
             throw new InvalidInputException("Phone number cannot be empty.");
         if (dob == null || dob.trim().isEmpty())
             throw new InvalidInputException("Date of birth cannot be empty.");
+        if (symptoms == null || symptoms.trim().isEmpty())
+            throw new InvalidInputException("Symptoms cannot be empty.");
 
         String cleanDob = dob.trim();
         try {
@@ -80,6 +81,7 @@ public class ClinicManager {
 
         String id = "P" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         Patient p = new Patient(id, name.trim(), phone.trim(), cleanDob);
+        p.addHistory(symptoms.trim());
         patients.add(p);
         FileManager.savePatients(patients);
         System.out.println("Patient added! ID: " + id);
@@ -98,8 +100,7 @@ public class ClinicManager {
 
     public void addDoctor(String name, String phone, String specialty, String slotsInput)
             throws InvalidInputException, IOException {
-        if (name == null || name.trim().isEmpty())
-            throw new InvalidInputException("Doctor name cannot be empty.");
+        validatePersonName(name, "Doctor");
         if (phone == null || phone.trim().isEmpty())
             throw new InvalidInputException("Phone number cannot be empty.");
         if (specialty == null || specialty.trim().isEmpty())
@@ -277,6 +278,21 @@ public class ClinicManager {
             }
         }
         if (!found) System.out.println("No appointments found for this doctor.");
+    }
+
+    private void validatePersonName(String name, String label) throws InvalidInputException {
+        if (name == null || name.trim().isEmpty()) {
+            throw new InvalidInputException(label + " name cannot be empty.");
+        }
+
+        String cleanName = name.trim();
+        if (cleanName.matches(".*\\d.*")) {
+            throw new InvalidInputException(label + " name cannot contain numbers.");
+        }
+
+        if (!cleanName.matches("[\\p{L} .'-]+")) {
+            throw new InvalidInputException(label + " name contains invalid characters.");
+        }
     }
 
     // Getters

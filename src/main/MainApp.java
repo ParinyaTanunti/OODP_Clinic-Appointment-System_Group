@@ -89,11 +89,17 @@ public class MainApp {
                 while (true) {
                     clearScreen();
                     System.out.println("=== Add Patient ===");
+                    System.out.println("Enter 0 at any time to cancel.");
                     try {
-                        System.out.print("Name         : "); String name = scanner.nextLine().trim();
-                        System.out.print("Phone        : "); String phone = scanner.nextLine().trim();
-                        System.out.print("Date of Birth (YYYY-MM-DD): "); String dob = scanner.nextLine().trim();
-                        clinic.addPatient(name, phone, dob);
+                        String name = readInputOrCancel("Name         : ");
+                        if (name == null) break;
+                        String phone = readInputOrCancel("Phone        : ");
+                        if (phone == null) break;
+                        String dob = readInputOrCancel("Date of Birth (YYYY-MM-DD): ");
+                        if (dob == null) break;
+                        String symptoms = readInputOrCancel("Symptoms     : ");
+                        if (symptoms == null) break;
+                        clinic.addPatient(name, phone, dob, symptoms);
                         pause();
                         break;
                     } catch (InvalidInputException e) {
@@ -133,12 +139,16 @@ public class MainApp {
                 while (true) {
                     clearScreen();
                     System.out.println("=== Add Doctor ===");
+                    System.out.println("Enter 0 at any time to cancel.");
                     try {
-                        System.out.print("Name         : "); String name = scanner.nextLine().trim();
-                        System.out.print("Phone        : "); String phone = scanner.nextLine().trim();
-                        System.out.print("Specialty    : "); String spec = scanner.nextLine().trim();
-                        System.out.print("Time slots (comma-separated, e.g. 09:00,10:00,14:00): ");
-                        String slots = scanner.nextLine().trim();
+                        String name = readInputOrCancel("Name         : ");
+                        if (name == null) break;
+                        String phone = readInputOrCancel("Phone        : ");
+                        if (phone == null) break;
+                        String spec = readInputOrCancel("Specialty    : ");
+                        if (spec == null) break;
+                        String slots = readInputOrCancel("Time slots (comma-separated, e.g. 09:00,10:00,14:00): ");
+                        if (slots == null) break;
                         clinic.addDoctor(name, phone, spec, slots);
                         pause();
                         break;
@@ -185,22 +195,23 @@ public class MainApp {
         while (true) {
             clearScreen();
             System.out.println("=== Book Appointment ===");
+            System.out.println("Enter 0 at any time to cancel.");
 
             // Show patients
             clinic.listPatients();
-            System.out.print("Enter Patient ID: ");
-            String patientId = scanner.nextLine().trim();
+            String patientId = readInputOrCancel("Enter Patient ID: ");
+            if (patientId == null) return;
 
             // Show doctors with their slots clearly
             System.out.println();
             clinic.listDoctors();
-            System.out.print("Enter Doctor ID : ");
-            String doctorId = scanner.nextLine().trim();
+            String doctorId = readInputOrCancel("Enter Doctor ID : ");
+            if (doctorId == null) return;
 
-            System.out.print("Date (YYYY-MM-DD): ");
-            String date = scanner.nextLine().trim();
-            System.out.print("Time Slot (e.g. 09:00): ");
-            String slot = scanner.nextLine().trim();
+            String date = readInputOrCancel("Date (YYYY-MM-DD): ");
+            if (date == null) return;
+            String slot = readInputOrCancel("Time Slot (e.g. 09:00): ");
+            if (slot == null) return;
 
             try {
                 clinic.bookAppointment(patientId, doctorId, date, slot);
@@ -246,8 +257,10 @@ public class MainApp {
                 }
 
                 clinic.listPatients();
-                System.out.print("Enter Patient ID: ");
-                String pid = scanner.nextLine().trim();
+                String pid = readInputOrCancel("Enter Patient ID (or 0 to go back): ");
+                if (pid == null) {
+                    continue;
+                }
                 clinic.viewAppointmentsByPatient(pid);
                 pause();
             } else if (choice == 3) {
@@ -258,8 +271,10 @@ public class MainApp {
                 }
 
                 clinic.listDoctors();
-                System.out.print("Enter Doctor ID: ");
-                String did = scanner.nextLine().trim();
+                String did = readInputOrCancel("Enter Doctor ID (or 0 to go back): ");
+                if (did == null) {
+                    continue;
+                }
                 clinic.viewAppointmentsByDoctor(did);
                 pause();
             } else if (choice == 0) {
@@ -340,6 +355,16 @@ public class MainApp {
     private static void pause() {
         System.out.print("\nPress Enter to continue...");
         scanner.nextLine();
+    }
+
+    private static String readInputOrCancel(String prompt) {
+        System.out.print(prompt);
+        String input = scanner.nextLine().trim();
+        if (input.equals("0")) {
+            System.out.println("Action cancelled.");
+            return null;
+        }
+        return input;
     }
 
     /**
