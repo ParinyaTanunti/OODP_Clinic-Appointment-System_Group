@@ -77,9 +77,17 @@ public class Doctor extends Person implements ISchedulable {
     }
 
     // Getters
-    public String getSpecialty()            { return specialty; }
-    public void setSpecialty(String s)      { this.specialty = s; }
-    public void setAvailableSlots(List<String> slots) { this.availableSlots = slots; }
+    public String getSpecialty() {
+        return specialty;
+    }
+
+    public void setSpecialty(String s) {
+        this.specialty = s;
+    }
+
+    public void setAvailableSlots(List<String> slots) {
+        this.availableSlots = slots;
+    }
 
     /**
      * Convert doctor data to CSV line for file storage.

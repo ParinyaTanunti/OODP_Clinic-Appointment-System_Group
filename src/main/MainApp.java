@@ -91,14 +91,23 @@ public class MainApp {
                     System.out.println("=== Add Patient ===");
                     System.out.println("Enter 0 at any time to cancel.");
                     try {
+                        // Collect patient details from the user before saving
                         String name = readInputOrCancel("Name         : ");
-                        if (name == null) break;
+                        if (name == null) {
+                            break;
+                        }
                         String phone = readInputOrCancel("Phone        : ");
-                        if (phone == null) break;
+                        if (phone == null) {
+                            break;
+                        }
                         String dob = readInputOrCancel("Date of Birth (YYYY-MM-DD): ");
-                        if (dob == null) break;
+                        if (dob == null) {
+                            break;
+                        }
                         String symptoms = readInputOrCancel("Symptoms     : ");
-                        if (symptoms == null) break;
+                        if (symptoms == null) {
+                            break;
+                        }
                         clinic.addPatient(name, phone, dob, symptoms);
                         pause();
                         break;
@@ -141,14 +150,23 @@ public class MainApp {
                     System.out.println("=== Add Doctor ===");
                     System.out.println("Enter 0 at any time to cancel.");
                     try {
+                        // Collect doctor details and available time slots
                         String name = readInputOrCancel("Name         : ");
-                        if (name == null) break;
+                        if (name == null) {
+                            break;
+                        }
                         String phone = readInputOrCancel("Phone        : ");
-                        if (phone == null) break;
+                        if (phone == null) {
+                            break;
+                        }
                         String spec = readInputOrCancel("Specialty    : ");
-                        if (spec == null) break;
+                        if (spec == null) {
+                            break;
+                        }
                         String slots = readInputOrCancel("Time slots (comma-separated, e.g. 09:00,10:00,14:00): ");
-                        if (slots == null) break;
+                        if (slots == null) {
+                            break;
+                        }
                         clinic.addDoctor(name, phone, spec, slots);
                         pause();
                         break;
@@ -197,23 +215,32 @@ public class MainApp {
             System.out.println("=== Book Appointment ===");
             System.out.println("Enter 0 at any time to cancel.");
 
-            // Show patients
+            // Show current patients so the user can choose a valid ID
             clinic.listPatients();
             String patientId = readInputOrCancel("Enter Patient ID: ");
-            if (patientId == null) return;
+            if (patientId == null) {
+                return;
+            }
 
-            // Show doctors with their slots clearly
+            // Show doctors and their slots before booking
             System.out.println();
             clinic.listDoctors();
             String doctorId = readInputOrCancel("Enter Doctor ID : ");
-            if (doctorId == null) return;
+            if (doctorId == null) {
+                return;
+            }
 
             String date = readInputOrCancel("Date (YYYY-MM-DD): ");
-            if (date == null) return;
+            if (date == null) {
+                return;
+            }
             String slot = readInputOrCancel("Time Slot (e.g. 09:00): ");
-            if (slot == null) return;
+            if (slot == null) {
+                return;
+            }
 
             try {
+                // Only save the appointment if all booking rules pass
                 clinic.bookAppointment(patientId, doctorId, date, slot);
                 pause();
                 return;
@@ -343,7 +370,9 @@ public class MainApp {
             }
         } catch (Exception e) {
             // Fallback: print blank lines
-            for (int i = 0; i < 50; i++) System.out.println();
+            for (int i = 0; i < 50; i++) {
+                System.out.println();
+            }
         }
     }
 
@@ -360,6 +389,8 @@ public class MainApp {
     private static String readInputOrCancel(String prompt) {
         System.out.print(prompt);
         String input = scanner.nextLine().trim();
+
+        // Let the user exit the current form without finishing all fields
         if (input.equals("0")) {
             System.out.println("Action cancelled.");
             return null;

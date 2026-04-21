@@ -30,11 +30,24 @@ public abstract class Person {
     public abstract void displayInfo();
 
     // Getters
-    public String getUserId() { return userId; }
-    public String getName()   { return name; }
-    public String getPhone()  { return phone; }
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
 
     // Setters
-    public void setName(String name)   { this.name = name; }
-    public void setPhone(String phone) { this.phone = phone; }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 }

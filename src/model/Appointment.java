@@ -46,13 +46,33 @@ public class Appointment {
     }
 
     // Getters
-    public String  getAppointmentId() { return appointmentId; }
-    public Patient getPatient()       { return patient; }
-    public Doctor  getDoctor()        { return doctor; }
-    public String  getDate()          { return date; }
-    public String  getTimeSlot()      { return timeSlot; }
-    public String  getStatus()        { return status; }
-    public void    setStatus(String s){ this.status = s; }
+    public String getAppointmentId() {
+        return appointmentId;
+    }
+
+    public Patient getPatient() {
+        return patient;
+    }
+
+    public Doctor getDoctor() {
+        return doctor;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public String getTimeSlot() {
+        return timeSlot;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String s) {
+        this.status = s;
+    }
 
     /**
      * Convert to CSV line for file storage.

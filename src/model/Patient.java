@@ -36,6 +36,8 @@ public class Patient extends Person {
         System.out.println("Name         : " + name);
         System.out.println("Phone        : " + phone);
         System.out.println("Date of Birth: " + dateOfBirth);
+
+        // Show the latest recorded symptom to summarize the patient's condition
         if (!medicalHistory.isEmpty()) {
             System.out.println("Latest Symptom: " + medicalHistory.get(medicalHistory.size() - 1));
         }
@@ -49,8 +51,13 @@ public class Patient extends Person {
     }
 
     // Getters
-    public List<String> getMedicalHistory() { return medicalHistory; }
-    public String getDateOfBirth()          { return dateOfBirth; }
+    public List<String> getMedicalHistory() {
+        return medicalHistory;
+    }
+
+    public String getDateOfBirth() {
+        return dateOfBirth;
+    }
 
     // Setter
     public void setMedicalHistory(List<String> history) {

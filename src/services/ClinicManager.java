@@ -64,13 +64,17 @@ public class ClinicManager {
      */
     public void addPatient(String name, String phone, String dob, String symptoms)
             throws InvalidInputException, IOException {
+        // Reject incomplete patient details before creating an ID
         validatePersonName(name, "Patient");
-        if (phone == null || phone.trim().isEmpty())
+        if (phone == null || phone.trim().isEmpty()) {
             throw new InvalidInputException("Phone number cannot be empty.");
-        if (dob == null || dob.trim().isEmpty())
+        }
+        if (dob == null || dob.trim().isEmpty()) {
             throw new InvalidInputException("Date of birth cannot be empty.");
-        if (symptoms == null || symptoms.trim().isEmpty())
+        }
+        if (symptoms == null || symptoms.trim().isEmpty()) {
             throw new InvalidInputException("Symptoms cannot be empty.");
+        }
 
         String cleanDob = dob.trim();
         try {
@@ -81,6 +85,8 @@ public class ClinicManager {
 
         String id = "P" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         Patient p = new Patient(id, name.trim(), phone.trim(), cleanDob);
+
+        // Store the initial symptom as the first history record
         p.addHistory(symptoms.trim());
         patients.add(p);
         FileManager.savePatients(patients);
@@ -93,20 +99,26 @@ public class ClinicManager {
             return;
         }
         System.out.println("\n=== Patients ===");
-        for (Patient p : patients) p.displayInfo();
+        for (Patient p : patients) {
+            p.displayInfo();
+        }
     }
 
     // ─── DOCTOR ──────────────────────────────────────────────────────────────
 
     public void addDoctor(String name, String phone, String specialty, String slotsInput)
             throws InvalidInputException, IOException {
+        // Validate doctor profile fields before parsing time slots
         validatePersonName(name, "Doctor");
-        if (phone == null || phone.trim().isEmpty())
+        if (phone == null || phone.trim().isEmpty()) {
             throw new InvalidInputException("Phone number cannot be empty.");
-        if (specialty == null || specialty.trim().isEmpty())
+        }
+        if (specialty == null || specialty.trim().isEmpty()) {
             throw new InvalidInputException("Specialty cannot be empty.");
-        if (slotsInput == null || slotsInput.trim().isEmpty())
+        }
+        if (slotsInput == null || slotsInput.trim().isEmpty()) {
             throw new InvalidInputException("At least one time slot is required.");
+        }
 
         String id = "D" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         Doctor d = new Doctor(id, name.trim(), phone.trim(), specialty.trim());
@@ -183,16 +195,16 @@ public class ClinicManager {
         if (patient == null)
             throw new InvalidInputException("Patient ID not found: " + patientId);
 
+        // Make sure the selected doctor exists before booking
         Doctor doctor = FileManager.findById(doctors, doctorId);
         if (doctor == null)
             throw new DoctorNotFoundException(doctorId); // concept 2.3
 
+        // Allow booking only in the doctor's configured working slots
         if (!doctor.getAvailableSlots().contains(cleanSlot))
             throw new SlotUnavailableException(cleanSlot); // concept 2.3
 
-        // WHY CHECK APPOINTMENTS LIST:
-        // Doctor availableSlots stores standard working hours, not date-specific bookings.
-        // We therefore prevent double-booking by checking doctor + date + time among ACTIVE appointments.
+        // Prevent double-booking for the same doctor, date, and time
         if (isDoctorBooked(doctorId, cleanDate, cleanSlot))
             throw new SlotUnavailableException(cleanSlot + " on " + cleanDate);
 
@@ -223,6 +235,8 @@ public class ClinicManager {
                     System.out.println("This appointment is already cancelled.");
                     return true;
                 }
+
+                // Keep the record but mark it cancelled for audit/history
                 a.cancel();
                 FileManager.saveAppointments(appointments);
                 System.out.println("Appointment " + apptId + " cancelled.");
@@ -259,7 +273,9 @@ public class ClinicManager {
                 found = true;
             }
         }
-        if (!found) System.out.println("No appointments found for this patient.");
+        if (!found) {
+            System.out.println("No appointments found for this patient.");
+        }
     }
 
     public void viewAppointmentsByDoctor(String doctorId) {
@@ -277,7 +293,9 @@ public class ClinicManager {
                 found = true;
             }
         }
-        if (!found) System.out.println("No appointments found for this doctor.");
+        if (!found) {
+            System.out.println("No appointments found for this doctor.");
+        }
     }
 
     private void validatePersonName(String name, String label) throws InvalidInputException {
@@ -286,17 +304,28 @@ public class ClinicManager {
         }
 
         String cleanName = name.trim();
+
+        // Reject numeric names to keep patient and doctor records realistic
         if (cleanName.matches(".*\\d.*")) {
             throw new InvalidInputException(label + " name cannot contain numbers.");
         }
 
+        // Allow letters, spaces, dots, apostrophes, and hyphens only
         if (!cleanName.matches("[\\p{L} .'-]+")) {
             throw new InvalidInputException(label + " name contains invalid characters.");
         }
     }
 
     // Getters
-    public List<Patient>     getPatients()     { return patients; }
-    public List<Doctor>      getDoctors()      { return doctors; }
-    public List<Appointment> getAppointments() { return appointments; }
+    public List<Patient> getPatients() {
+        return patients;
+    }
+
+    public List<Doctor> getDoctors() {
+        return doctors;
+    }
+
+    public List<Appointment> getAppointments() {
+        return appointments;
+    }
 }

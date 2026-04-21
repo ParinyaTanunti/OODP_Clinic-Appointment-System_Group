@@ -26,7 +26,10 @@ public class FileManager {
     // Ensure data directory exists on startup
     public static void initialize() {
         File dir = new File(DATA_DIR);
-        if (!dir.exists()) dir.mkdir();
+        if (!dir.exists()) {
+            // Create the data folder once before any file read/write happens
+            dir.mkdir();
+        }
         try {
             new File(PATIENTS_FILE).createNewFile();
             new File(DOCTORS_FILE).createNewFile();
@@ -79,14 +82,20 @@ public class FileManager {
     public static List<Patient> loadPatients() throws IOException {
         List<Patient> list = new ArrayList<>();
         File file = new File(PATIENTS_FILE);
-        if (!file.exists() || file.length() == 0) return list;
+        if (!file.exists() || file.length() == 0) {
+            return list;
+        }
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (line.trim().isEmpty()) continue;
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
                 String[] parts = splitEscaped(line, ',', 5);
-                if (parts.length < 4) continue;
+                if (parts.length < 4) {
+                    continue;
+                }
 
                 Patient p = new Patient(
                     unescape(parts[0]),
@@ -94,7 +103,8 @@ public class FileManager {
                     unescape(parts[2]),
                     unescape(parts[3])
                 );
-                // Restore medical history if present
+
+                // Restore saved symptom history from the data file
                 if (parts.length == 5 && !parts[4].isEmpty()) {
                     for (String note : splitEscaped(unescape(parts[4]), '|', 0)) {
                         p.addHistory(note);
@@ -109,14 +119,20 @@ public class FileManager {
     public static List<Doctor> loadDoctors() throws IOException {
         List<Doctor> list = new ArrayList<>();
         File file = new File(DOCTORS_FILE);
-        if (!file.exists() || file.length() == 0) return list;
+        if (!file.exists() || file.length() == 0) {
+            return list;
+        }
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (line.trim().isEmpty()) continue;
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
                 String[] parts = splitEscaped(line, ',', 5);
-                if (parts.length < 4) continue;
+                if (parts.length < 4) {
+                    continue;
+                }
 
                 Doctor d = new Doctor(
                     unescape(parts[0]),
@@ -124,7 +140,8 @@ public class FileManager {
                     unescape(parts[2]),
                     unescape(parts[3])
                 );
-                // Restore available slots if present
+
+                // Restore configured doctor time slots from the data file
                 if (parts.length == 5 && !parts[4].isEmpty()) {
                     for (String slot : splitEscaped(unescape(parts[4]), '|', 0)) {
                         d.addSlot(slot);
@@ -140,19 +157,27 @@ public class FileManager {
                                                       List<Doctor> doctors) throws IOException {
         List<Appointment> list = new ArrayList<>();
         File file = new File(APPOINTMENTS_FILE);
-        if (!file.exists() || file.length() == 0) return list;
+        if (!file.exists() || file.length() == 0) {
+            return list;
+        }
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (line.trim().isEmpty()) continue;
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
                 String[] parts = splitEscaped(line, ',', 6);
-                if (parts.length < 6) continue;
+                if (parts.length < 6) {
+                    continue;
+                }
 
-                // Find matching Patient and Doctor by ID
+                // Reconnect appointment records to the matching patient and doctor objects
                 Patient patient = findById(patients, unescape(parts[1]));
                 Doctor  doctor  = findById(doctors,  unescape(parts[2]));
-                if (patient == null || doctor == null) continue;
+                if (patient == null || doctor == null) {
+                    continue;
+                }
 
                 Appointment a = new Appointment(
                     unescape(parts[0]),
@@ -208,8 +233,11 @@ public class FileManager {
     }
 
     private static String escape(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
 
+        // Escape reserved separators so text can be stored safely in one line
         StringBuilder escaped = new StringBuilder();
         for (char ch : value.toCharArray()) {
             if (ch == '\\' || ch == ',' || ch == '|') {
@@ -246,6 +274,7 @@ public class FileManager {
         StringBuilder current = new StringBuilder();
         boolean escaping = false;
 
+        // Split text while respecting escaped commas and pipes
         for (int i = 0; i < value.length(); i++) {
             char ch = value.charAt(i);
 
@@ -284,8 +313,11 @@ public class FileManager {
      * This is concept 2.6 (Parametric Polymorphism).
      */
     public static <T extends model.Person> T findById(List<T> list, String id) {
+        // Reuse one generic search method for both patients and doctors
         for (T item : list) {
-            if (item.getUserId().equals(id)) return item;
+            if (item.getUserId().equals(id)) {
+                return item;
+            }
         }
         return null;
     }
