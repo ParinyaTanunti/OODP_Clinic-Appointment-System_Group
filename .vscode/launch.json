@@ -6,11 +6,8 @@
             "name": "Run Clinic Appointment System",
             "request": "launch",
             "mainClass": "main.MainApp",
-            "classPaths": [
-                "${workspaceFolder}/out"
-            ],
             "cwd": "${workspaceFolder}",
-            "preLaunchTask": "Build Clinic Appointment System"
+            "console": "integratedTerminal"
         }
     ]
 }
